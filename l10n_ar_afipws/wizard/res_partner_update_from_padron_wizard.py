@@ -58,6 +58,7 @@ class ResPartnerUpdateFromPadronWizard(models.TransientModel):
             "zip",
             "l10n_ar_afip_responsibility_type_id",
             "last_update_census",
+            "actividades_padron",
         ]
         return [
             ("model", "=", "res.partner"),
@@ -155,6 +156,8 @@ class ResPartnerUpdateFromPadronWizard(models.TransientModel):
         for field in self.field_ids:
             if field.field in ("impuestos_padron", "actividades_padron"):
                 vals[field.field] = [(6, False, literal_eval(field.new_value))]
+            elif field.field in ("state_id", "l10n_ar_afip_responsibility_type_id"):
+                vals[field.field] = int(field.new_value)
             else:
                 vals[field.field] = field.new_value
         self.partner_id.write(vals)
