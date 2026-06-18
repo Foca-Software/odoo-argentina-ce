@@ -373,7 +373,8 @@ class AccountMove(models.Model):
             invoice_info["fecha_serv_desde"] = self.l10n_ar_afip_service_start
             invoice_info["fecha_serv_hasta"] = self.l10n_ar_afip_service_end
 
-        amounts = self._l10n_ar_get_amounts()
+        base_lines, _tax_lines = self._get_rounded_base_and_tax_lines()
+        amounts = self._l10n_ar_get_amounts(base_lines=base_lines)
         invoice_info["amounts"] = amounts
         # invoice amount totals:
         invoice_info["imp_total"] = str("%.2f" % self.amount_total)
