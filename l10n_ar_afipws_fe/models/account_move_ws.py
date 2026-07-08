@@ -4,6 +4,7 @@
 ##############################################################################
 import logging
 from datetime import datetime
+from calendar import monthrange
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
@@ -370,8 +371,22 @@ class AccountMove(models.Model):
 
         # fecha de servicio solo si no es 1
         if int(invoice_info["concepto"]) != 1:
-            invoice_info["fecha_serv_desde"] = self.l10n_ar_afip_service_start
-            invoice_info["fecha_serv_hasta"] = self.l10n_ar_afip_service_end
+            fecha_desde = self.l10n_ar_afip_service_start
+            fecha_hasta = self.l10n_ar_afip_service_end
+
+            if not fecha_desde or not fecha_hasta:
+                fecha_ref = self.invoice_date or fields.Date.context_today(self)
+                primer_dia = fecha_ref.replace(day=1)
+                ultimo_dia = fecha_ref.replace(day=monthrange(fecha_ref.year, fecha_ref.month)[1])
+                fecha_desde = fecha_desde or primer_dia
+                fecha_hasta = fecha_hasta or ultimo_dia
+                _logger.warning(
+                    "Factura %s (Concepto=%s) sin fecha de servicio cargada, usando mes de invoice_date como fallback",
+                    self.name, invoice_info["concepto"]
+                )
+
+            invoice_info["fecha_serv_desde"] = fecha_desde
+            invoice_info["fecha_serv_hasta"] = fecha_hasta
 
         base_lines, _tax_lines = self._get_rounded_base_and_tax_lines()
         amounts = self._l10n_ar_get_amounts(base_lines=base_lines)
